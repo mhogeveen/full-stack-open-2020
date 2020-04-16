@@ -31,28 +31,28 @@ const App = () => {
       }
 
       const nameMatch = persons.filter((person) => person.name === newName)
+      const numberMatch = persons.filter((person) => person.number === newNumber)
 
-      console.log(nameMatch)
-
-      if (nameMatch.length === 0) {
-         setPersons(persons.concat(personObject))
-         setMessage(`Added ${newName}`)
-         setTimeout(() => {
-            setMessage('')
-         }, 4000)
-         setNewName('')
-         setNewNumber('')
-
-         personsServices //force break
+      if (nameMatch.length === 0 && numberMatch.length === 0) {
+         personsServices
             .create(personObject)
-            .then(console.log('post success'))
-
-         personsServices //force break
-            .getAll()
-            .then((initialPersons) => {
-               setPersons(initialPersons)
+            .then((createdPerson) => {
+               setPersons(persons.concat(createdPerson))
+               setMessage(`Added ${newName}`)
+               setTimeout(() => {
+                  setMessage('')
+               }, 4000)
+               setNewName('')
+               setNewNumber('')
+               console.log('post succes')
             })
-      } else {
+            .catch((error) => {
+               setError(error.response.data.error)
+               setTimeout(() => {
+                  setError('')
+               }, 4000)
+            })
+      } else if (nameMatch.length !== 0) {
          if (
             window.confirm(
                `${nameMatch[0].name} is already added to phonebook, replace the old number with a new one?`
@@ -83,6 +83,11 @@ const App = () => {
                   }, 4000)
                })
          }
+      } else if (numberMatch.length !== 0) {
+         setError(`${numberMatch[0].number} is already in the phonebook under a different name.`)
+         setTimeout(() => {
+            setError('')
+         }, 4000)
       }
    }
 
@@ -91,9 +96,8 @@ const App = () => {
          personsServices //force break
             .remove(toRemoveObject)
             .then(() => {
-               setPersons(
-                  persons.filter((person) => person.id !== toRemoveObject.id)
-               )
+               setPersons(persons.filter((person) => person.id !== toRemoveObject.id))
+               console.log('deletion succes')
             })
       }
    }
